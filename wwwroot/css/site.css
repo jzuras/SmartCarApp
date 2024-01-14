@@ -1,0 +1,61 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.grid-container-center {
+    display: flex;
+    align-items: center;
+    max-width: 400px;
+    width: 100%;
+    padding: 20px;
+}
+
+
+.centered-form-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.centered-form {
+    display: flex;
+    justify-content: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+.vehicle {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.security-status {
+    margin-left: 10px;
+}
+
+.refresh-status {
+    margin-left: 40px;
+    margin-right: 20px;
+}

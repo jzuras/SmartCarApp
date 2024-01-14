@@ -1,0 +1,35 @@
+﻿@model List<Vehicle>
+
+@{
+    ViewData["Title"] = "Vehicles";
+    var NoVehicles = TempData.NoVehicles();
+}
+<h1>@ViewData["Title"]</h1>
+
+
+<div>
+    @if (!string.IsNullOrEmpty(NoVehicles))
+    {
+        <p></p>
+        <div>No vehicles found. <a href="/">Return Home</a> and use Connect button to link your vehicle(s).</div>
+        <p></p>
+        <div>More information: @NoVehicles</div>
+    }
+    else
+    {
+        <div class="accordion" id="accordionMain">
+            @{
+                var index = 0;
+                foreach (var vehicle in Model)
+                {
+                    await Html.RenderPartialAsync("_VehicleSingle", vehicle,
+                    new ViewDataDictionary(ViewData)
+                    {
+                        { "index", index }
+                    });
+                    index++;
+                }
+            }
+        </div>
+    }
+</div>

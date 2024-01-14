@@ -1,0 +1,37 @@
+﻿@model SmartCarWebApp.Models.ViewModels.HomeViewModel
+
+@{
+    ViewData["Title"] = "Home Page";
+    var ErrorResult = TempData.ErrorResult();
+}
+
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+</div>
+<p>&nbsp;</p>
+
+<div class="centered-form-container">
+    <div class="centered-form">
+        <form method="post" enctype="multipart/form-data">
+        <div>
+            <div class="form-check form-switch">
+                <feature name=@SmartCarWebApp.Shared.FeatureFlags.EnableLiveMode>
+                    <input checked class="form-check-input" type="checkbox" asp-for="TestMode">
+                </feature>
+                <feature name=@SmartCarWebApp.Shared.FeatureFlags.EnableLiveMode negate="true">
+                    <input checked class="form-check-input" type="checkbox" asp-for="TestMode" disabled>
+                </feature>
+                <label class="form-check-label text-dark" asp-for="TestMode">Test</label>
+            </div>
+            <input type="submit" value="Connect" class="btn btn-primary mt-3") />
+        </div>
+        </form>
+    </div>
+</div>
+<div>
+    @if (!string.IsNullOrEmpty(ErrorResult))
+    {
+        <div class="alert alert-danger mt-3">@Html.Raw(ErrorResult)</div>
+    }
+</div>

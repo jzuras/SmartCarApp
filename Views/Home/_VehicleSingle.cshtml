@@ -1,0 +1,121 @@
+﻿@model Vehicle
+
+@{
+    string DisplayName = $"{Model.VehicleInfo.Year} {Model.VehicleInfo.Make} {Model.VehicleInfo.Model}";
+    var index = Convert.ToInt32(ViewData["index"]!);
+    var ErrorResult = TempData.ErrorResult();
+}
+
+<div class="accordion-item" id="accordionItem@(index)">
+    <h2 class="accordion-header" id="headingOne">
+        <button name="AccordionHeaderButton@(index)" class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne@(index)" aria-expanded="true" aria-controls="collapseOne@(index)">
+            <div class="row w-100">
+                <div class="col">
+                    @DisplayName 
+                    <span class="security-status">
+                        (Security Status: @((Model.Security.IsLocked == true) ? "Locked)" : "Unlocked)")
+                    </span>
+                </div>
+                <div class="col-auto">
+                    <span class="refresh-status">
+                        <a name="RefreshButton@(index)" class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target id="refreshButton@(index)">Refresh Status</a>
+                    </span>
+                </div>
+            </div>
+        </button>
+    </h2>
+    <div id="collapseOne@(index)" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+    @if (!string.IsNullOrEmpty(ErrorResult))
+    {
+        <div class="row">
+            <div class="col">
+                <div style="border: 1px solid red; padding: 5px; margin: 8px; color: red; border-radius: 5px;">
+                    <span style="white-space: pre-line;">@ErrorResult</span>
+                </div>
+            </div>
+        </div>
+    }
+        <div class="row">
+            <div class="accordion-body col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Window Status
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var item in Model.Security.Windows)
+                        {
+                            <li class="list-group-item">@item.Type: @item.Status</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+            <div class="accordion-body col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row w-100">
+                            <div class="col">
+                                Door Status
+                            </div>
+                            <div class="col-auto">
+                                <a name="LockButton@(index)" id="LockButton@(index)" class="btn btn-sm btn-primary">
+                                    @((Model.Security.IsLocked == true) ? "Unlock" : "Lock")
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var item in Model.Security.Doors)
+                        {
+                            <li class="list-group-item">@item.Type: @item.Status</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+            <div class="accordion-body col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Other Status
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Charging Port: @Model.ChargingPortStatus</li>
+                        <li class="list-group-item">Sunroof: @Model.SunroofStatus</li>
+                        @foreach (var item in Model.Security.Storage)
+                        {
+                            <li class="list-group-item">
+                                @Html.DisplayFor(modelItem => item.Type): @item.Status
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $("button[name='AccordionHeaderButton@(index)']").click(function (e) {
+        if ($(e.target).is('a[name="RefreshButton@(index)"]')) {
+
+            $.get('@Url.Action("Vehicle", "Home")',
+                {
+                    id: '@Model.VehicleInfo.ID',
+                    vehicleIndex: '@index',
+                }, function (data) {
+                    $('#accordionItem@(index)').html(data);
+                });
+        }
+    });
+
+    $("#LockButton@(index)").click(function () {
+        $.get('@Url.Action("Vehicle", "Home")',
+            {
+                id: '@Model.VehicleInfo.ID',
+                vehicleIndex: '@index',
+                lockOrUnlock: '@(Model.Security.IsLocked ? "Unlock" : "Lock")'
+            }, function (data) {
+
+                $('#accordionItem@(index)').html(data);
+            });
+    });
+</script>
