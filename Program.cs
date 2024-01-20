@@ -76,8 +76,13 @@ public class Program
         app.UseAuthorization();
 
         // temporary until a DB is implemented:
-        app.UseSession();
-
+        app.UseSession(new SessionOptions()
+        {
+            Cookie = new CookieBuilder()
+            {
+                Name = ".AspNetCore.Session.SmartCarApp"
+            }
+        });
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");

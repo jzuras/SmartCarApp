@@ -220,13 +220,15 @@ public class HomeController : Controller
     public async Task<IActionResult> Index()
     {
         this.Logger.LogTraceExt("Index() HttpGet called.");
+        
         var ipv4Address = HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString();
-        if (string.IsNullOrEmpty(ipv4Address) == false)
-        {
-            this.Logger.LogInformationExt($"Home Controller->Index() - Calling IPv4: {ipv4Address}");
-        }
+        var referringUrl = HttpContext.Request.Headers.TryGetValue("Referer", out var refererValues)
+            ? refererValues.ToString() : null;
 
-        await this.SendEmail("SmartCar Test App", $"Home Page accessed Calling IPv4: {ipv4Address}.");
+        this.Logger.LogInformationExt($"Home Controller->Index() - Calling IPv4: {ipv4Address} referringURL: {referringUrl}.");
+        
+        await this.SendEmail("SmartCar Test App", $"Home Page accessed. Calling IPv4: {ipv4Address} referringURL: {referringUrl}.");
+
         return View();
     }
 
@@ -284,7 +286,7 @@ public class HomeController : Controller
 
     #region Helper Methods
     /// <summary>
-    /// Uses SendGrid API to send an email using configuration data.
+    /// Uses SendGrid API and/or Azure Email Service to send an email using configuration data.
     /// </summary>
     /// <param name="subject">Subject of the email.</param>
     /// <param name="message">Body of the email.</param>
@@ -292,59 +294,63 @@ public class HomeController : Controller
     {
         if (await this.FeatureManager.IsEnabledAsync(FeatureFlags.SendEmails))
         {
-            this.Logger.LogTraceExt("SendEmail() called, feature enabled.");
+            this.Logger.LogInformationExt("SendEmail() called, feature enabled.");
 
             if (this.Settings.Email.SendToAddress != null)
             {
-                #region Azure Email Service
-                var emailConnectionString = this.Settings.Email.AzureEmailConnectionString;
-                var emailClient = new EmailClient(emailConnectionString);
+                if (this.Settings.Email.UseAzureEmailService == "true")
+                {
+                    #region Azure Email Service
+                    var emailConnectionString = this.Settings.Email.AzureEmailConnectionString;
+                    var emailClient = new EmailClient(emailConnectionString);
 
-                try
-                {
-                    EmailSendOperation emailSendOperation = await emailClient.SendAsync(
-                        WaitUntil.Started,
-                        senderAddress: "DoNotReply@zuras.com",
-                        recipientAddress: this.Settings.Email.SendToAddress,
-                        subject: this.Settings.Email.Subject,
-                        htmlContent: message,
-                        plainTextContent: message);
-                    this.Logger.LogTraceExt($"Azure email sent.");
+                    try
+                    {
+                        EmailSendOperation emailSendOperation = await emailClient.SendAsync(
+                            WaitUntil.Started,
+                            senderAddress: "DoNotReply@zuras.com",
+                            recipientAddress: this.Settings.Email.SendToAddress,
+                            subject: this.Settings.Email.Subject,
+                            htmlContent: message,
+                            plainTextContent: message);
+                        this.Logger.LogInformationExt($"Azure email sent.");
+                    }
+                    catch (Exception ex)
+                    {
+                        this.Logger.LogWarningExt(ex, "Exception attempting to send email with Azure.");
+                    }
+                    #endregion
                 }
-                catch (Exception ex)
-                {
-                    this.Logger.LogWarningExt(ex, "Exception attempting to send email with Azure.");
-                }
-                #endregion
 
-                #region SendGrid Code
-                /*
-                var apiKey = this.Settings.Email.SendGridKey;
-                var client = new SendGridClient(apiKey);
-                var msg = new SendGridMessage()
+                if (this.Settings.Email.UseSendGridEmailService == "true")
                 {
-                    From = new EmailAddress(this.Settings.Email.FromAddress, this.Settings.Email.FromName),
-                    Subject = this.Settings.Email.Subject,
-                    PlainTextContent = message
-                };
-                msg.AddTo(new EmailAddress(this.Settings.Email.SendToAddress, this.Settings.Email.SendToName));
+                    #region SendGrid Email Service
+                    var apiKey = this.Settings.Email.SendGridKey;
+                    var client = new SendGridClient(apiKey);
+                    var msg = new SendGridMessage()
+                    {
+                        From = new SendGrid.Helpers.Mail.EmailAddress(this.Settings.Email.FromAddress, this.Settings.Email.FromName),
+                        Subject = this.Settings.Email.Subject,
+                        PlainTextContent = message
+                    };
+                    msg.AddTo(new SendGrid.Helpers.Mail.EmailAddress(this.Settings.Email.SendToAddress, this.Settings.Email.SendToName));
 
-                try
-                {
-                    var response = await client.SendEmailAsync(msg);
-                    this.Logger.LogInformationExt($"SendGrid email sent - status code: {response.StatusCode}.");
+                    try
+                    {
+                        var response = await client.SendEmailAsync(msg);
+                        this.Logger.LogInformationExt($"SendGrid email sent - status code: {response.StatusCode}.");
+                    }
+                    catch (Exception ex)
+                    {
+                        this.Logger.LogWarningExt(ex, "Exception attempting to send email with SendGrid.");
+                    }
+                    #endregion
                 }
-                catch (Exception ex)
-                {
-                    this.Logger.LogWarningExt(ex, "Exception attempting to send email with SendGrid.");
-                }
-                */
-                #endregion
             }
         }
         else
         {
-            this.Logger.LogTraceExt("SendEmail() called, feature disabled.");
+            this.Logger.LogInformationExt("SendEmail() called, feature disabled.");
         }
     }
 

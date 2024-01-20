@@ -12,11 +12,13 @@ public class Settings
 
 public class Email
 {
-    public string SendGridKey { get; set; }
+    public string UseSendGridEmailService { get; set; }
+    public string UseAzureEmailService { get; set; }
     public string SendToAddress { get; set; }
     public string SendToName { get; set; }
     public string FromAddress { get; set; }
     public string FromName { get; set; }
     public string Subject { get; set; }
+    public string SendGridKey { get; set; }
     public string AzureEmailConnectionString { get; set; }
 }
